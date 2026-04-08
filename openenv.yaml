@@ -1,0 +1,111 @@
+name: care-dem
+version: "1.0.0"
+description: >
+  A real-world AI agent environment where the agent assists a person suffering
+  from dementia and Alzheimer's disease. The agent interacts through gentle
+  text messages to help with: medication reminders & tracking, daily schedule
+  & routine guidance, memory prompts (people, places, events), and safety
+  alerts (stove, door). Designed to train and evaluate compassionate,
+  reliable assistive AI agents.
+
+author: "OpenEnv Participant"
+tags:
+  - healthcare
+  - assistive-ai
+  - dementia
+  - alzheimers
+  - real-world
+  - safety
+  - memory
+
+environment:
+  type: text-based
+  interaction: gentle-text-reminders
+  observation_space: structured-json
+  action_space: structured-json
+  reward_range: [0.0, 1.0]
+  reward_type: shaped
+
+tasks:
+  - task_id: medication_reminder
+    name: "Medication Reminder & Tracking"
+    difficulty: easy
+    max_steps: 5
+    reward_threshold: 0.7
+    description: >
+      Identify the correct medication for the time of day (Donepezil morning /
+      Memantine noon / Vitamin D evening), send a gentle reminder with name
+      and dose, ask for confirmation, and log intake.
+
+  - task_id: daily_routine
+    name: "Daily Schedule & Routine Guidance"
+    difficulty: medium
+    max_steps: 10
+    reward_threshold: 0.6
+    description: >
+      Guide the patient through 5 morning routine steps in correct order:
+      wake up → brush teeth → take medication → have breakfast → call family.
+      Handle confusion with patience and patient-friendly language.
+
+  - task_id: memory_prompts
+    name: "Memory Prompts — People, Places & Events"
+    difficulty: medium-hard
+    max_steps: 8
+    reward_threshold: 0.5
+    description: >
+      Use the memory cue sheet (photo album, handwritten notes) to help
+      the patient recall family members, favourite places, and recent events.
+      Answer 3 questions correctly with gentle prompts.
+
+  - task_id: safety_and_care
+    name: "Safety Alert & Compound Care"
+    difficulty: hard
+    max_steps: 10
+    reward_threshold: 0.4
+    description: >
+      Compound emergency: stove left on, door unlocked, patient confused.
+      Agent must prioritise correctly — stove first, door second, memory
+      third, reassurance fourth, caregiver log fifth.
+
+observation_space:
+  task_id:         string
+  step:            integer
+  patient_message: string
+  context:         object
+  alerts:          list[string]
+  time_of_day:     enum[morning, afternoon, evening, night]
+  patient_mood:    enum[calm, confused, anxious, agitated]
+  memory_cues:     list[string]
+
+action_space:
+  action_type: enum[remind, guide, identify, reassure, alert, answer, log, no_op]
+  message:     string
+  target:      string (optional)
+  urgency:     enum[normal, high, emergency] (default: normal)
+
+reward_function:
+  type: shaped-per-step
+  components:
+    - correct_action_type:     0.20–0.25
+    - correct_medication_name: 0.25
+    - correct_dose:            0.20
+    - asks_confirmation:       0.15
+    - logs_intake:             0.15
+    - correct_routine_step:    0.40
+    - patient_friendly_lang:   0.20
+    - memory_cue_usage:        0.20
+    - correct_identification:  0.30
+    - stove_addressed_urgent:  0.25
+    - door_addressed:          0.20
+    - visitor_identified:      0.20
+    - patient_reassured:       0.20
+    - caregiver_logged:        0.15
+  penalties:
+    - harsh_tone:              -0.20
+    - no_op_action:            -0.10
+
+api:
+  reset_endpoint: POST /reset   body: {"task_id": "<task_id>"}
+  step_endpoint:  POST /step    body: Action JSON
+  state_endpoint: GET  /state
+  tasks_endpoint: GET  /tasks
