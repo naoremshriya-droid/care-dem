@@ -1,0 +1,8 @@
+spec_version: 1
+name: care-dem
+version: "1.0.0"
+description: "CareDem: Compassionate AI for dementia care"
+type: text
+runtime: docker
+app: server.app:app
+port: 7860
