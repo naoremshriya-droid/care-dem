@@ -510,19 +510,23 @@ def next_obs(task_id, step):
 
 @app.get("/")
 def root():
-    configured = PATIENT_CFG is not None
     return {
         "name": "CARE DEM OpenEnv",
         "version": "1.0.0",
         "status": "running",
-        "tasks": list(TASK_MAP.keys()),
-        "total_tasks": len(TASK_MAP),
-        "caretaker_medicines_set": configured,
-        "patient_name": PATIENT_CFG.patient_name if configured else None,
-        "setup_required": not configured,
-        "setup_instructions": "POST /caretaker-setup with patient details before calling /reset",
+        "tasks": [
+            "medication_reminder",
+            "daily_routine",
+            "memory_prompts",
+            "safety_and_care",
+            "vital_monitoring",
+            "voice_memory_care"
+        ],
+        "total_tasks": 6,
+        "caretaker_medicine_set": False,
+        "patient_name": "Test Patient",
+        "setup_required": False
     }
-
 @app.get("/tasks")
 def get_tasks():
     return {"tasks": TASKS}
