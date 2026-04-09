@@ -560,18 +560,21 @@ def caretaker_setup(config: CaretakerSetup):
 @app.post("/reset")
 def reset(body: dict = None):
     global STATE, PATIENT_CFG
+
+    class DummyConfig:
+        def __init__(self):
+            self.patient_name = "Test Patient"
+            self.caregiver_name = "Test Caregiver"
+            self.custom_medications = []
+            self.family = {}
+            self.emergency_contacts = []
+            self.routine = []
+            self.places = []
+            self.events = []
+
     if PATIENT_CFG is None:
-        from types import SimpleNamespace
-        PATIENT_CFG = SimpleNamespace(
-            patient_name="Test Patient",
-            caregiver_name="Test Caregiver",
-            custom_medications=[],
-            family={},
-            emergency_contacts=[],
-            routine=[],
-            places=[],
-            events=[]
-        )
+        PATIENT_CFG = DummyConfig()
+  
     task_id = (body or {}).get("task_id", "medication_reminder")
     if task_id not in TASK_MAP:
         return {"error": f"Unknown task '{task_id}'. Valid: {list(TASK_MAP.keys())}"}
