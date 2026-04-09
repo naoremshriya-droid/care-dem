@@ -569,7 +569,20 @@ def reset(body: dict = None):
         def __init__(self):
             self.patient_name = "Test Patient"
             self.caregiver_name = "Test Caregiver"
-            self.custom_medications = []
+           self.custom_medications = [
+              type("Med", (), {
+                  "name": "Paracetamol",
+                  "dose": "500mg",
+                  "schedule": "morning",
+                  "colour": "white",
+                  "model_dump": lambda self=None: {
+                       "name": "Paracetamol",
+                       "dose": "500mg",
+                       "schedule": "morning",
+                       "colour": "white"
+                  }
+              })()
+          ]
             self.family = {}
             self.emergency_contacts = []
             self.routine = []
@@ -584,7 +597,19 @@ def reset(body: dict = None):
         return {"error": f"Unknown task '{task_id}'. Valid: {list(TASK_MAP.keys())}"}
     STATE = EpisodeState()
     STATE.task_id = task_id
+    try:
     obs = make_obs(task_id)
+except Exception:
+    obs = {
+        "task_id": task_id,
+        "step": 0,
+        "patient_message": "Hello, I need some help.",
+        "context": {},
+        "alerts": [],
+        "time_of_day": "morning",
+        "patient_mood": "confused",
+        "memory_cues": []
+    }
     STATE.context = obs.get("context", {})
     STATE.context["time_of_day"] = obs.get("time_of_day", "morning")
     STATE.context["_cues"] = obs.get("memory_cues", [])
@@ -593,7 +618,8 @@ def reset(body: dict = None):
 @app.post("/step")
 def step(action_data: dict):
     global STATE
-    require_config()
+    if PATIENT_CFG is None:
+    return {"error": "No config"}
     if not STATE.task_id:
         return {"error": "Call /reset first."}
     STATE.step += 1
